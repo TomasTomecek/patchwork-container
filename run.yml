@@ -1,5 +1,5 @@
 ---
-# TODO: implement start & stop
+# TODO: implement start, stop and delete
 - name: run Patchwork
   hosts: localhost
   vars:
