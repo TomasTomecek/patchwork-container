@@ -11,6 +11,8 @@
     db_database_name: '{{ c_name }}'
     db_user: '{{ c_name }}'
     db_password: FIXME-generate-this  # ansible vault
+    # path to runtime data of the database
+    db_data_path: '{{ playbook_dir }}/db_data'
   tasks:
     - name: build patchwork image
       docker_image:
@@ -23,6 +25,13 @@
       docker_image:
         name: '{{ db_image }}'
         tag: latest
+    - name: create directory to hold postgres' data
+      file:
+        path: '{{ db_data_path }}'
+        state: directory
+        mode: 0755
+        owner: 26
+      become: true
     - name: run postgres
       docker_container:
         name: '{{ db_container }}'
@@ -33,8 +42,8 @@
           POSTGRESQL_USER: '{{ db_user }}'
           POSTGRESQL_PASSWORD: '{{ db_password }}'
           POSTGRESQL_DATABASE: '{{ db_database_name }}'
-        # volumes:
-        #   - '{{ db_container }}-data:/var/lib/mysql:z'
+        volumes:
+          - '{{ db_data_path }}:/var/lib/pgsql/data:Z'
       register: db_cont_metadata
     # - debug:
     #     msg: '{{ db_cont_metadata }}'
