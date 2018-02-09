@@ -62,9 +62,13 @@
       DATABASE_HOST: '{{ db_cont_metadata["ansible_facts"]["docker_container"]["NetworkSettings"]["IPAddress"] }}'
       DATABASE_PORT: '5432'
       DJANGO_SECRET_KEY: 'FIXME'  # utilize ansible vault
+      # FIXME: this won't work when the fixture is not specified
+      INITIAL_FIXTURE: '{{ initial_db_fixture | basename }}'
     command: ./init_db.sh
     volumes:
     - '{{ prod_config_path }}:/opt/{{ pw_image_username }}/patchwork/settings/production.py'
+    # FIXME: this won't work when the fixture is not specified
+    - '{% if initial_db_fixture %}{{initial_db_fixture}}:/opt/{{pw_image_username}}/{{initial_db_fixture | basename}}{%endif %}'
 
 - name: we can finally run patchwork
   docker_container:

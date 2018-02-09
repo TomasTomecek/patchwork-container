@@ -23,5 +23,7 @@ db_password: FIXME-generate-this  # ansible vault
 # database runtime data should be stored outside the container
 # this is the path to them on host
 db_data_path: '{{ playbook_dir }}/db_data'
+# fixture which is loaded in the DB initially (via manage.py loaddata)
+initial_db_fixture: ''
 # production configuration file which is mounted inside the container(s)
 prod_config_path: '{{ role_path }}/files/settings_prod.py'
