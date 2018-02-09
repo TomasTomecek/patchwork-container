@@ -1,7 +1,7 @@
-- name: is patchwork already built?
-  command: docker inspect {{ i_name }}
-  ignore_errors: yes
-  register: pw_image_exists
+# - name: is patchwork already built?
+#   command: docker inspect {{ i_name }}
+#   ignore_errors: yes
+#   register: pw_image_exists
 - name: build patchwork image
   docker_image:
     buildargs:
@@ -12,8 +12,7 @@
     name: '{{ i_name }}'
     tag: latest
     state: 'present'
-    force: true
-  when: pw_image_force_build or pw_image_exists.failed
+    force: '{{ pw_image_force_build  }}'
 - name: obtain postgres image
   docker_image:
     name: '{{ db_image }}'
