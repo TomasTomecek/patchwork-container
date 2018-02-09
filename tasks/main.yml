@@ -50,42 +50,47 @@
   until: postgres_running | success
   retries: 10
 
-- name: populate the database
-  docker_container:
-    name: '{{ db_loader_container }}'
-    image: '{{ i_name }}'
-    state: 'started'
-    env:
+- name: prepare volume list
+  set_fact:
+    container_volume_list:
+    - '{{ prod_config_path }}:/opt/{{ pw_image_username }}/patchwork/settings/production.py'
+- name: prepare env dict
+  set_fact:
+    container_env_dict:
       DATABASE_NAME: '{{ db_database_name }}'
       DATABASE_USER: '{{ db_user }}'
       DATABASE_PASSWORD: '{{ db_password }}'
       DATABASE_HOST: '{{ db_cont_metadata["ansible_facts"]["docker_container"]["NetworkSettings"]["IPAddress"] }}'
       DATABASE_PORT: '5432'
       DJANGO_SECRET_KEY: 'FIXME'  # utilize ansible vault
-      # FIXME: this won't work when the fixture is not specified
-      INITIAL_FIXTURE: '{{ initial_db_fixture | basename }}'
+
+- name: append initial fixture to env vars
+  set_fact:
+    container_env_dict: '{{ container_env_dict | combine({"INITIAL_FIXTURE": initial_db_fixture | basename}) }}'
+  when: initial_db_fixture != ""
+- name: append initial fixture to list of volumes
+  set_fact:
+    container_volume_list: "{{ container_volume_list }} + [ '{{ initial_db_fixture }}:/opt/{{ pw_image_username }}/{{ initial_db_fixture | basename }}' ]"
+  when: initial_db_fixture != ""
+
+- name: populate the database
+  docker_container:
+    name: '{{ db_loader_container }}'
+    image: '{{ i_name }}'
+    state: 'started'
+    env: "{{ container_env_dict }}"
     command: ./init_db.sh
-    volumes:
-    - '{{ prod_config_path }}:/opt/{{ pw_image_username }}/patchwork/settings/production.py'
-    # FIXME: this won't work when the fixture is not specified
-    - '{% if initial_db_fixture %}{{initial_db_fixture}}:/opt/{{pw_image_username}}/{{initial_db_fixture | basename}}{%endif %}'
+    volumes: "{{ container_volume_list }}"
 
 - name: we can finally run patchwork
   docker_container:
     name: '{{ c_name }}'
     image: '{{ i_name }}'
     state: 'started'
-    env:
-      DATABASE_NAME: '{{ db_database_name }}'
-      DATABASE_USER: '{{ db_user }}'
-      DATABASE_PASSWORD: '{{ db_password }}'
-      DATABASE_HOST: '{{ db_cont_metadata["ansible_facts"]["docker_container"]["NetworkSettings"]["IPAddress"] }}'
-      DATABASE_PORT: '5432'
-      DJANGO_SECRET_KEY: 'FIXME'
+    env: "{{ container_env_dict }}"
     ports:
       - 8000:8000
-    volumes:
-    - '{{ prod_config_path }}:/opt/{{ pw_image_username }}/patchwork/settings/production.py'
+    volumes: "{{ container_volume_list }}"
 # TODO: smoke test web and database
 
 - name: make sure the "fetch mailing list archive" script is executable
@@ -93,22 +98,17 @@
     mode: +x
     path: '{{ fetch_ml_script }}'
   when: fetch_ml_script != ""
+- name: append initial fixture to list of volumes
+  set_fact:
+    container_volume_list: "{{ container_volume_list }} + [ '{{ fetch_ml_script }}:/opt/{{ pw_image_username }}/{{ fetch_ml_script | basename }}' ]"
+  when: fetch_ml_script != ""
 
 - name: container to fetch e-mail
   docker_container:
     name: '{{ email_fetcher_container }}'
     image: '{{ i_name }}'
     state: 'started'
-    env:
-      DATABASE_NAME: '{{ db_database_name }}'
-      DATABASE_USER: '{{ db_user }}'
-      DATABASE_PASSWORD: '{{ db_password }}'
-      DATABASE_HOST: '{{ db_cont_metadata["ansible_facts"]["docker_container"]["NetworkSettings"]["IPAddress"] }}'
-      DATABASE_PORT: '5432'
-      DJANGO_SECRET_KEY: 'FIXME'
+    env: "{{ container_env_dict }}"
     command: '/opt/{{ pw_image_username}}/{{ fetch_ml_script | basename }}'
-    volumes:
-    - '{{ prod_config_path }}:/opt/{{ pw_image_username }}/patchwork/settings/production.py'
-    - '{{ fetch_ml_script }}:/opt/{{ pw_image_username }}/{{ fetch_ml_script | basename }}'
+    volumes: "{{ container_volume_list }}"
   when: fetch_ml_script != ""
-
