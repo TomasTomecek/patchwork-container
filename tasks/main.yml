@@ -64,7 +64,7 @@
       DJANGO_SECRET_KEY: 'FIXME'  # utilize ansible vault
     command: ./init_db.sh
     volumes:
-    - '{{ prod_config_path }}:/opt/app/patchwork/settings/production.py'
+    - '{{ prod_config_path }}:/opt/{{ pw_image_username }}/patchwork/settings/production.py'
 
 - name: we can finally run patchwork
   docker_container:
@@ -81,5 +81,30 @@
     ports:
       - 8000:8000
     volumes:
-    - '{{ prod_config_path }}:/opt/app/patchwork/settings/production.py'
+    - '{{ prod_config_path }}:/opt/{{ pw_image_username }}/patchwork/settings/production.py'
 # TODO: smoke test web and database
+
+- name: make sure the "fetch mailing list archive" script is executable
+  file:
+    mode: +x
+    path: '{{ fetch_ml_script }}'
+  when: fetch_ml_script != ""
+
+- name: container to fetch e-mail
+  docker_container:
+    name: '{{ email_fetcher_container }}'
+    image: '{{ i_name }}'
+    state: 'started'
+    env:
+      DATABASE_NAME: '{{ db_database_name }}'
+      DATABASE_USER: '{{ db_user }}'
+      DATABASE_PASSWORD: '{{ db_password }}'
+      DATABASE_HOST: '{{ db_cont_metadata["ansible_facts"]["docker_container"]["NetworkSettings"]["IPAddress"] }}'
+      DATABASE_PORT: '5432'
+      DJANGO_SECRET_KEY: 'FIXME'
+    command: '/opt/{{ pw_image_username}}/{{ fetch_ml_script | basename }}'
+    volumes:
+    - '{{ prod_config_path }}:/opt/{{ pw_image_username }}/patchwork/settings/production.py'
+    - '{{ fetch_ml_script }}:/opt/{{ pw_image_username }}/{{ fetch_ml_script | basename }}'
+  when: fetch_ml_script != ""
+
