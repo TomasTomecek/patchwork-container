@@ -8,3 +8,5 @@ db_user: '{{ c_name }}'
 db_password: FIXME-generate-this  # ansible vault
 # path to runtime data of the database
 db_data_path: '{{ playbook_dir }}/db_data'
+
+prod_config_path: '{{ role_path }}/files/settings_prod.py'

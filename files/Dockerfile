@@ -17,7 +17,6 @@ RUN git clone https://github.com/getpatchwork/patchwork /opt/${USERNAME} && \
     pip3 install --user -r ./requirements-prod.txt
 
 COPY init_db.sh /opt/${USERNAME}/
-COPY ./settings_prod.py /opt/${USERNAME}/patchwork/settings/production.py
 
 WORKDIR /opt/${USERNAME}
 
