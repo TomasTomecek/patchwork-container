@@ -1,0 +1,6 @@
+---
+- name: run Patchwork
+  hosts: localhost
+  gather_facts: false
+  roles:
+  - patchwork-container

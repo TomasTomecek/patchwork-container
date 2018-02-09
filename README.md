@@ -1,11 +1,11 @@
-# Patchwork in a container
+# Patchwork in a container as an Ansible role
 
 This is a containerized version of [patchwork](https://github.com/getpatchwork/patchwork).
 
 
 ## State
 
-First prototype built. Unsuitable for production. Suggestions are welcome.
+We are working on it. Unsuitable for production yet. Suggestions are welcome.
 
 
 ## Requirements
@@ -16,13 +16,16 @@ First prototype built. Unsuitable for production. Suggestions are welcome.
 
 ## Usage
 
-```
-$ make run
+Create a playbook which will utilize this Ansible role. It can be as simple as:
+```yaml
+---
+- name: run Patchwork
+  hosts: localhost
+  roles:
+  - patchwork-container
 ```
 
-```
-$ xdg-open http://0.0.0.0:8000
-```
+For more info, see [./example/](/example/).
 
 
 ## More info

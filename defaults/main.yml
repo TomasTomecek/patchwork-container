@@ -1,19 +1,27 @@
 c_name: patchwork
+# this user is created in the container and used to run patchwork
 pw_image_username: app
+# git repository where the patchwork sources are present
+# the patchwork is cloned from this place
 pw_image_git_url: https://github.com/getpatchwork/patchwork
+# git branch to clone
 pw_image_git_branch: master
-# force container image rebuild
+# when set to true, it forces the rebuild of patchwork container image, even when it exists
+# by default, when the image exists, it's not being built again
 pw_image_force_build: false
 i_name: '{{ c_name }}-i'
 db_image: docker.io/centos/postgresql-96-centos7
 db_container: '{{ c_name }}-db'
 db_loader_container: '{{ c_name }}-db-loader'
 email_fetcher_container: '{{ c_name }}-fetcher'
+# path to a script which is used in a dedicated container to fetch mailing list archives
+# this script is mounted in a new container and executed
 fetch_ml_script: ""
 db_database_name: '{{ c_name }}'
 db_user: '{{ c_name }}'
 db_password: FIXME-generate-this  # ansible vault
-# path to runtime data of the database
+# database runtime data should be stored outside the container
+# this is the path to them on host
 db_data_path: '{{ playbook_dir }}/db_data'
-
+# production configuration file which is mounted inside the container(s)
 prod_config_path: '{{ role_path }}/files/settings_prod.py'
