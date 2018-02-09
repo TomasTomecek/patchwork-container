@@ -13,7 +13,7 @@
     tag: latest
     state: 'present'
     force: true
-  when: pw_image_exists.failed
+  when: pw_image_force_build or pw_image_exists.failed
 - name: obtain postgres image
   docker_image:
     name: '{{ db_image }}'
