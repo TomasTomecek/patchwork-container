@@ -1,4 +1,7 @@
 c_name: patchwork
+pw_image_username: app
+pw_image_git_url: https://github.com/getpatchwork/patchwork
+pw_image_git_branch: master
 i_name: '{{ c_name }}-i'
 db_image: docker.io/centos/postgresql-96-centos7
 db_container: '{{ c_name }}-db'

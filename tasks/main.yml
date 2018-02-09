@@ -4,6 +4,10 @@
   register: pw_image_exists
 - name: build patchwork image
   docker_image:
+    buildargs:
+      USERNAME: '{{ pw_image_username }}'
+      GIT_URL: '{{ pw_image_git_url }}'
+      GIT_BRANCH: '{{ pw_image_git_branch }}'
     path: '{{ role_path }}/files/'
     name: '{{ i_name }}'
     tag: latest
@@ -46,8 +50,6 @@
   register: postgres_running
   until: postgres_running | success
   retries: 10
-
-
 
 - name: populate the database
   docker_container:
